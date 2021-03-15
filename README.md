@@ -3,7 +3,7 @@
 This project was made as an assigment, were we had to make a minigame using everything we learned so far, like shooting and audio.
 
 ## Key Features:
-It's a 1PVP1 set as a spac ship arcade
+It's a PVP set as a space ship arcade
 
 ## Controls:
 
