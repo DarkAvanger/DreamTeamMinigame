@@ -24,9 +24,9 @@ Move Right: Arrow_Right
 
 Move Left: Arrow_Left
 
-### General Controls:
-
 Shoot: P
+
+### General Controls:
 
 Restart Game: R
 
