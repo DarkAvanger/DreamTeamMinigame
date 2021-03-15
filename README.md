@@ -1,6 +1,6 @@
 # DreamTeamMinigame
 
-# Controls:
+## Controls:
 
 ### Player One:
 
