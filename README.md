@@ -39,6 +39,10 @@ Quit: ESC
 
 ## Developers:
 Angel Consola
+
 Sofia Liles
+
 Hang Xue
+
 Marta llurba
+
