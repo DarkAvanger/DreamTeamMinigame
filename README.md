@@ -1,9 +1,9 @@
 # DreamTeamMinigame
 ## Description:
-This project was made as an assigment, were we had to make a minigame. We decided to go for a space ship arcade that you can play with your friends in a 1PVP1
+This project was made as an assigment, were we had to make a minigame using everything we learned so far, like shooting and audio.
 
 ## Key Features:
-
+It's a 1PVP1 set as a spac ship arcade
 
 ## Controls:
 
