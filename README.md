@@ -2,7 +2,7 @@
 
 # Controls:
 
-## Player One:
+### Player One:
 
 Move Up: W
 
@@ -14,7 +14,7 @@ Move Left: A
 
 Shoot: Space
 
-## Player Two:
+### Player Two:
 
 Move Up: Arrow_Up
 
@@ -24,7 +24,7 @@ Move Right: Arrow_Right
 
 Move Left: Arrow_Left
 
-## General Controls:
+### General Controls:
 
 Shoot: P
 
