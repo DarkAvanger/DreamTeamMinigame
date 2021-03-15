@@ -1,14 +1,9 @@
-// -------------------------------------------------------------------------
-// Awesome simple game with SDL
-// Lesson 2 - Input Events
-//
-// SDL API: http://wiki.libsdl.org/APIByCategory
-// -------------------------------------------------------------------------
 
 #include <stdio.h>			// Required for: printf()
 #include <stdlib.h>			// Required for: EXIT_SUCCESS
 #include <math.h>			// Required for: sinf(), cosf()
 #include <stdbool.h>
+#include <Windows.h>
 
 // Include SDL libraries
 #include "SDL/include/SDL.h"				// Required for SDL base systems functionality
@@ -34,7 +29,7 @@
 #define MAX_MOUSE_BUTTONS	   5
 #define JOYSTICK_DEAD_ZONE  8000
 
-#define SHIP_SPEED			   8
+#define SHIP_SPEED			   5
 #define MAX_SHIP_SHOTS		  32
 #define SHOT_SPEED			  12
 #define SCROLL_SPEED		   5
@@ -97,13 +92,14 @@ struct GlobalState
 	int ship_y;
 	int ship2_x;
 	int ship2_y;
+	int ship_life = 5;
+	int ship2_life = 5;
 	Projectile shots[MAX_SHIP_SHOTS];
 	Projectile shots2[MAX_SHIP_SHOTS];
 	int last_shot;
 	int last_shot2;
 	int scroll;
 };
-
 // Global game state variable
 GlobalState state;
 
@@ -113,6 +109,7 @@ GlobalState state;
 static void DrawRectangle(int x, int y, int width, int height, SDL_Color color);
 static void DrawLine(int x1, int y1, int x2, int y2, SDL_Color color);
 static void DrawCircle(int x, int y, int radius, SDL_Color color);
+
 // Functions Declarations and Definition
 // -------------------------------------------------------------------------
 void Start()
@@ -124,7 +121,7 @@ void Start()
 	//if (SDL_InitSubSystem(SDL_INIT_EVENTS) < 0) printf("SDL_EVENTS could not be initialized! SDL_Error: %s\n", SDL_GetError());
 
 	// Init window
-	state.window = SDL_CreateWindow("Super Awesome Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	state.window = SDL_CreateWindow("Minigame", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	state.surface = SDL_GetWindowSurface(state.window);
 
 	// Init renderer
@@ -162,6 +159,7 @@ void Start()
 
 	Mix_Music* backgroundSound = Mix_LoadMUS("Assets/music.wav");
 	Mix_Chunk* laserEffect = Mix_LoadWAV("Assets/laser.wav");
+	Mix_Chunk* boomEffect = Mix_LoadWAV("Assets/explosion.wav");
 
 	// L4: TODO 2: Start playing loaded music
 	Mix_PlayMusic(backgroundSound, -1);
@@ -315,20 +313,51 @@ bool CheckInput()
 void MoveStuff()
 {
 	// L2: DONE 7: Move the ship with arrow keys
-	if (state.keyboard[SDL_SCANCODE_UP] == KEY_REPEAT) state.ship2_y -= SHIP_SPEED;
-	else if (state.keyboard[SDL_SCANCODE_DOWN] == KEY_REPEAT) state.ship2_y += SHIP_SPEED;
-
-	if (state.keyboard[SDL_SCANCODE_LEFT] == KEY_REPEAT) state.ship2_x -= SHIP_SPEED;
-	else if (state.keyboard[SDL_SCANCODE_RIGHT] == KEY_REPEAT) state.ship2_x += SHIP_SPEED;
-
-	if (state.keyboard[SDL_SCANCODE_W] == KEY_REPEAT) state.ship_y -= SHIP_SPEED;
-	else if (state.keyboard[SDL_SCANCODE_S] == KEY_REPEAT) state.ship_y += SHIP_SPEED;
-
-	if (state.keyboard[SDL_SCANCODE_A] == KEY_REPEAT) state.ship_x -= SHIP_SPEED;
-	else if (state.keyboard[SDL_SCANCODE_D] == KEY_REPEAT) state.ship_x += SHIP_SPEED;
-
+	if (state.ship2_life) {
+		if (state.keyboard[SDL_SCANCODE_UP] == KEY_REPEAT) {
+			if (state.ship2_y >= 0) {
+				state.ship2_y -= SHIP_SPEED;
+			}
+		}
+		else if (state.keyboard[SDL_SCANCODE_DOWN] == KEY_REPEAT) {
+			if (state.ship2_y <= SCREEN_HEIGHT - 64) {
+				state.ship2_y += SHIP_SPEED;
+			}
+		}
+		if (state.keyboard[SDL_SCANCODE_LEFT] == KEY_REPEAT) {
+			if (state.ship2_x >= 0) {
+				state.ship2_x -= SHIP_SPEED;
+			}
+		}
+		else if (state.keyboard[SDL_SCANCODE_RIGHT] == KEY_REPEAT) {
+			if (state.ship2_x <= SCREEN_WIDTH - 64)
+				state.ship2_x += SHIP_SPEED;
+		}
+	}
+	if (state.ship_life) {
+		if (state.keyboard[SDL_SCANCODE_W] == KEY_REPEAT) {
+			if (state.ship_y >= 0) {
+				state.ship_y -= SHIP_SPEED;
+			}
+		}
+		else if (state.keyboard[SDL_SCANCODE_S] == KEY_REPEAT) {
+			if (state.ship_y <= SCREEN_HEIGHT - 64) {
+				state.ship_y += SHIP_SPEED;
+			}
+		}
+		if (state.keyboard[SDL_SCANCODE_A] == KEY_REPEAT) {
+			if (state.ship_x > 0) {
+				state.ship_x -= SHIP_SPEED;
+			}
+		}
+		else if (state.keyboard[SDL_SCANCODE_D] == KEY_REPEAT) {
+			if (state.ship_x <= SCREEN_WIDTH - 64) {
+				state.ship_x += SHIP_SPEED;
+			}
+		}
+	}
 	// L2: DONE 8: Initialize a new shot when SPACE key is pressed
-	if (state.keyboard[SDL_SCANCODE_SPACE] == KEY_DOWN)
+	if (state.keyboard[SDL_SCANCODE_SPACE] == KEY_DOWN && state.ship_life != 0)
 	{
 		if (state.last_shot == MAX_SHIP_SHOTS) state.last_shot = 0;
 
@@ -341,7 +370,7 @@ void MoveStuff()
 		Mix_Chunk* laserEffect = Mix_LoadWAV("Assets/laser.wav");
 		Mix_PlayChannel(-1, laserEffect, 0);
 	}
-	if (state.keyboard[SDL_SCANCODE_P] == KEY_DOWN)
+	if (state.keyboard[SDL_SCANCODE_P] == KEY_DOWN && state.ship2_life != 0)
 	{
 		if (state.last_shot2 == MAX_SHIP_SHOTS) state.last_shot2 = 0;
 
@@ -404,7 +433,7 @@ void Draw()
 	SDL_RenderCopy(state.renderer, state.ship2, NULL, &rec);
 
 	// L2: DONE 9: Draw active shots
-	rec.w = 64; rec.h = 64;
+	rec.w = 64; rec.h = 50;
 	for (int i = 0; i < MAX_SHIP_SHOTS; ++i)
 	{
 		if (state.shots[i].alive)
@@ -414,7 +443,7 @@ void Draw()
 			SDL_RenderCopy(state.renderer, state.shot, NULL, &rec);
 		}
 	}
-	rec.w = 64; rec.h = 64;
+	rec.w = 64; rec.h = 50;
 	for (int i = 0; i < MAX_SHIP_SHOTS; ++i)
 	{
 		if (state.shots2[i].alive)
@@ -428,8 +457,53 @@ void Draw()
 	// Finally present framebuffer
 	SDL_RenderPresent(state.renderer);
 }
-
-
+void hitbox() {
+	if (state.ship_life == 0 || state.ship2_life == 0) return;
+	for (int i = 0; i < MAX_SHIP_SHOTS; ++i)
+	{
+		if (state.shots[i].x >= state.ship2_x && state.shots[i].x <= state.ship2_x + 64)
+		{
+			if (state.shots[i].alive) {
+				//printf("bullet:%d,ship top:%d,ship bot:%d", state.shots[i].y + 25, state.ship2_y, state.ship2_y + 64);
+				if (state.shots[i].y + 25 >= state.ship2_y && state.shots[i].y + 25 <= state.ship2_y + 64) {
+					state.ship2_life--;
+					state.shots[i].alive = false;
+					printf("life of player2 : %d\n", state.ship2_life);
+				}
+			}
+		}
+	}
+	for (int i = 0; i < MAX_SHIP_SHOTS; ++i)
+	{
+		if (state.shots2[i].x <= state.ship_x + 64 && state.shots2[i].x >= state.ship_x)
+		{
+			if (state.shots2[i].alive) {
+				if (state.shots2[i].y + 25 >= state.ship_y && state.shots2[i].y + 25 <= state.ship_y + 64) {
+					state.ship_life--;
+					state.shots2[i].alive = false;
+					printf("life of player1 : %d\n", state.ship_life);
+				}
+			}
+		}
+	}
+	int sleep = 0;
+	if (state.ship_life == 0) {
+		printf("player2 win!!\n");
+		state.ship = SDL_CreateTextureFromSurface(state.renderer, IMG_Load("Assets/explosion.png"));
+		Mix_Chunk* boomEffect = Mix_LoadWAV("Assets/explosion.wav");
+		Mix_PlayChannel(-1, boomEffect, 0);
+		sleep = 1;
+	}
+	else if (state.ship2_life == 0) {
+		printf("player1 win!!\n");
+		state.ship2 = SDL_CreateTextureFromSurface(state.renderer, IMG_Load("Assets/explosion.png"));
+		Mix_Chunk* boomEffect = Mix_LoadWAV("Assets/explosion.wav");
+		Mix_PlayChannel(-1, boomEffect, 0);
+		sleep = 1;
+	}
+	
+	
+}
 // Main Entry point
 // -------------------------------------------------------------------------
 int main(int argc, char* argv[])
@@ -441,6 +515,30 @@ int main(int argc, char* argv[])
 		MoveStuff();
 
 		Draw();
+		hitbox();
+		
+		if (state.keyboard[SDL_SCANCODE_R] == KEY_REPEAT)
+		{
+			state.ship_life = 5;
+			state.ship2_life = 5;
+			SDL_DestroyTexture(state.background);
+			SDL_DestroyTexture(state.ship);
+			IMG_Quit();
+
+			// L2: DONE 3: Close game controller
+			SDL_JoystickClose(state.gamepad);
+			state.gamepad = NULL;
+
+			// Deinitialize input events system
+			//SDL_QuitSubSystem(SDL_INIT_EVENTS);
+
+			// Deinitialize renderer and window
+			// WARNING: Renderer should be deinitialized before window
+			SDL_DestroyRenderer(state.renderer);
+			SDL_DestroyWindow(state.window);
+			Start();
+			
+		}
 	}
 
 	Finish();
